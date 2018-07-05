@@ -13,6 +13,7 @@ type service struct {
 	conf        *cconf.ServiceConf
 	db          *sql.DB
 	rp          *redis.Pool
+	bitmex *Bitmex
 }
 
 const (
@@ -32,10 +33,16 @@ func (s *service) Version() string {
 }
 
 func (s *service) Config(conf *cconf.ServiceConf) error {
+	s.bitmex = new(Bitmex)
+	s.bitmex.Configuration = cconf.LoadBitmexConf()
 	return nil
 }
 
 func (s *service) Start() {
 	color.Green("%s now start!", s.Name())
+	PricesTimer()
+	go s.bitmex.WebsocketClient()
+	go deal()
+	select{}
 }
 
